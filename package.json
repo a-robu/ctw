@@ -1,0 +1,23 @@
+{
+  "name": "ctw",
+  "version": "0.0.1",
+  "description": "Implementation of the Context Tree Weighting algorithm.",
+  "main": "src/ctw.js",
+  "scripts": {
+    "test": "node node_modules/mocha/bin/mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrewrocks/ctw.git"
+  },
+  "keywords": [
+    "ctw"
+  ],
+  "author": "Andrei Robu",
+  "license": "UNLICENSED",
+  "private": true,
+  "bugs": {
+    "url": "https://github.com/andrewrocks/ctw/issues"
+  },
+  "homepage": "https://github.com/andrewrocks/ctw#readme"
+}
