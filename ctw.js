@@ -2,10 +2,6 @@ const memoizee = require('memoizee')
 
 function kt(a, b) {
     if (a == 0 && b == 0) {
-        //This base case is nice because it allows us to write
-        //the function recursively, even though the value itself
-        //at kt(0, 0) is I think not very meaningful, since
-        //it correspons with zero observations.
         return 1
     }
     if (a == 0) {
@@ -20,5 +16,10 @@ function kt(a, b) {
     return kt(a - 1, b) * (a - 1/2) / (a + b)
 }
 kt = memoizee(kt)
+//TODO A memoized recursive function might not be the best
+//way to compute these values. The cache could grow very
+//large (or very sparse if the library throws our results).
+//A better way might be to update the probabilities in 
+//the tree directly the way other libraries to it.
 
 module.exports.kt = kt
