@@ -1,8 +1,9 @@
 const expect = require('chai').expect
 const ctw = require('./ctw')
 
-describe('nothing', () => {
-    it('should do things', () => {
-        expect(1).to.equal(2)
+describe('kt', () => {
+    it('should match an example', () => {
+        //A table of examples is in the doc directory.
+        expect(ctw.kt(4, 2)).to.equal(7 / 1024)
     })
 })
