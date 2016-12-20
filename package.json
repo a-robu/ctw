@@ -4,8 +4,7 @@
   "description": "Implementation of the Context Tree Weighting algorithm.",
   "main": "ctw.js",
   "scripts": {
-    "check-standard": "standard **.js --env mocha ctw_spec.js",
-    "test": "standard **.js --env mocha ctw_spec.js; mocha ctw_spec.js"
+    "test": "mocha ctw_spec.js"
   },
   "repository": {
     "type": "git",
