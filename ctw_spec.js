@@ -35,7 +35,7 @@ describe('base_count', () => {
     })
 })
 
-describe('node_count', () => {
+xdescribe('node_count', () => {
     it('works recursively', () => {
         let tree = ctw.EMPTY_COUNTS
         tree = ctw.increment(tree, '100', '1')

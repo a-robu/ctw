@@ -68,6 +68,7 @@ function node_count(counts, context, observation, tree_depth) {
     if (context.length == tree_depth) {
         return base_count(counts, context, observation)
     }
+    // FIXME context.length > tree_depth comparison broken?
     if (context.length > tree_depth) {
         throw Error('Context outside tree depth.')
     }
