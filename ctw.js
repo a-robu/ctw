@@ -1,6 +1,7 @@
 const memoizee = require('memoizee')
 const Map = require('immutable').Map
 const List = require('immutable').List
+const sum = require('compute-sum')
 
 const EMPTY_COUNTS = Map()
 
@@ -24,11 +25,11 @@ const kt = memoizee(function (a, b) {
 /**
  * To yields pairs of [context, observation]
  */
-function* all_pairs(to_compress, depth) {
-    let to_observe = depth
+function* all_pairs(to_compress, tree_depth) {
+    let to_observe = tree_depth
     while (to_observe < to_compress.length) {
         yield [
-            to_compress.slice(to_observe - depth, to_observe),
+            to_compress.slice(to_observe - tree_depth, to_observe),
             to_compress[to_observe]
         ]
         ++to_observe
@@ -36,33 +37,50 @@ function* all_pairs(to_compress, depth) {
 }
 
 /**
- * Counts 1s and 0s for every context up to a certain depth.
+ * Counts 1s and 0s for every context up to a certain tree_depth.
  */
-function scan(string, depth) {
+function scan(string, tree_depth) {
     let counts = EMPTY_COUNTS
-    for (let [context, observation] of all_pairs(string, depth)) {
+    for (let [context, observation] of all_pairs(string, tree_depth)) {
         counts = increment(counts, context, observation)
     }
     return counts
 }
 
-function weighted(counts, context, depth) {} 
+function weighted(counts, context, tree_depth) {} 
 
-function children(counts, context, depth) {}
+function children(context) {
+    return ['0' + context, '1' + context]
+}
 
 function increment(counts, context, observation) {
     return counts.setIn([context, observation], 
-        get_count(counts, context, observation) + 1
+        base_count(counts, context, observation) + 1
     )
 }
 
-function get_count(counts, context, observation) {
+function base_count(counts, context, observation) {
     return counts.getIn([context, observation], 0)
+    
+}
+
+function node_count(counts, context, observation, tree_depth) {
+    if (context.length == tree_depth) {
+        return base_count(counts, context, observation)
+    }
+    if (context.length > tree_depth) {
+        throw Error('Context outside tree depth.')
+    }
+    return sum(children(context).map(ctx => {
+        return node_count(counts, ctx, observation, tree_depth)
+    }))
 }
 
 module.exports.kt = kt
 module.exports.increment = increment
 module.exports.all_pairs = all_pairs
 module.exports.scan = scan
-module.exports.get_count = get_count
+module.exports.base_count = base_count
+module.exports.node_count = node_count
+module.exports.children = children
 module.exports.EMPTY_COUNTS = EMPTY_COUNTS
