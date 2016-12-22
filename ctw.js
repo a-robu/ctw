@@ -2,7 +2,7 @@ const memoizee = require('memoizee')
 const Map = require('immutable').Map
 const List = require('immutable').List
 
-const EMPTY_COUNTS = Map({0: 0, 1: 0})
+const EMPTY_COUNTS <actually these names are confusing> = Map({0: 0, 1: 0})
 const EMPTY_TREE = Map()
 
 /**
