@@ -1,5 +1,13 @@
 const memoizee = require('memoizee')
+const Map = require('immutable').Map
+const List = require('immutable').List
 
+const EMPTY_COUNTS = Map({0: 0, 1: 0})
+const EMPTY_TREE = Map()
+
+/**
+ * Computes the Krichevsky–Trofimov estimator
+ */
 const kt = memoizee(function (a, b) {
     if (a == 0 && b == 0) {
         return 1
@@ -15,10 +23,49 @@ const kt = memoizee(function (a, b) {
     // We rewrite rewrite with a = m + 1, m = a - 1 and n = b.
     return kt(a - 1, b) * (a - 1 / 2) / (a + b)
 })
-// TODO A memoized recursive function might not be the best
-// way to compute these values. The cache could grow very
-// large (or very sparse if the library throws our results).
-// A better way might be to update the probabilities in
-// the tree directly the way other libraries to it.
+
+/**
+ * To yields pairs of [context, observation]
+ */
+function* all_pairs(to_compress, depth) {
+    let to_observe = depth
+    while (to_observe < to_compress.length) {
+        yield [
+            to_compress.slice(to_observe - depth, to_observe),
+            to_compress[to_observe]
+        ]
+        ++to_observe
+    }
+}
+
+/**
+ * Counts 1s and 0s for every context up to a certain depth.
+ */
+function scan(string, depth) {
+    let counts = EMPTY_TREE
+    for (let [context, observation] of all_pairs(string, depth)) {
+        counts = increment(counts, context, observation)
+    }
+    return counts
+}
+
+function weighted(counts, context, depth) {} 
+
+function children(counts, context, depth) {}
+
+function increment(counts, context, observation) {
+    const initialised = counts.has(context)
+        ? counts
+        : counts.set(context, EMPTY_COUNTS)
+    return initialised.setIn([context, observation], 
+        initialised.getIn([context, observation]) + 1
+    )
+}
+
 
 module.exports.kt = kt
+module.exports.increment = increment
+module.exports.all_pairs = all_pairs
+module.exports.scan = scan
+module.exports.EMPTY_COUNTS = EMPTY_COUNTS
+module.exports.EMPTY_TREE = EMPTY_TREE
