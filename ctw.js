@@ -2,8 +2,7 @@ const memoizee = require('memoizee')
 const Map = require('immutable').Map
 const List = require('immutable').List
 
-const EMPTY_COUNTS <actually these names are confusing> = Map({0: 0, 1: 0})
-const EMPTY_TREE = Map()
+const EMPTY_COUNTS = Map()
 
 /**
  * Computes the Krichevsky–Trofimov estimator
@@ -42,7 +41,7 @@ function* all_pairs(to_compress, depth) {
  * Counts 1s and 0s for every context up to a certain depth.
  */
 function scan(string, depth) {
-    let counts = EMPTY_TREE
+    let counts = EMPTY_COUNTS
     for (let [context, observation] of all_pairs(string, depth)) {
         counts = increment(counts, context, observation)
     }
@@ -54,18 +53,18 @@ function weighted(counts, context, depth) {}
 function children(counts, context, depth) {}
 
 function increment(counts, context, observation) {
-    const initialised = counts.has(context)
-        ? counts
-        : counts.set(context, EMPTY_COUNTS)
-    return initialised.setIn([context, observation], 
-        initialised.getIn([context, observation]) + 1
+    return counts.setIn([context, observation], 
+        get_count(counts, context, observation) + 1
     )
 }
 
+function get_count(counts, context, observation) {
+    return counts.getIn([context, observation], 0)
+}
 
 module.exports.kt = kt
 module.exports.increment = increment
 module.exports.all_pairs = all_pairs
 module.exports.scan = scan
+module.exports.get_count = get_count
 module.exports.EMPTY_COUNTS = EMPTY_COUNTS
-module.exports.EMPTY_TREE = EMPTY_TREE
