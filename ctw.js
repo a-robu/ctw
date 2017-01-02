@@ -5,9 +5,7 @@ const sum = require('compute-sum')
 
 const EMPTY_COUNTS = Map()
 
-/**
- * Computes the Krichevsky–Trofimov estimator
- */
+/** Computes the Krichevsky–Trofimov estimator */
 const kt = memoizee(function (a, b) {
     if (a == 0 && b == 0) {
         return 1
@@ -22,9 +20,7 @@ const kt = memoizee(function (a, b) {
     return kt(a - 1, b) * (a - 1 / 2) / (a + b)
 })
 
-/**
- * To yields pairs of [context, observation]
- */
+/** Scans the string and yields all pairs of [context, observation] */
 function* all_pairs(to_compress, tree_depth) {
     let to_observe = tree_depth
     while (to_observe < to_compress.length) {
@@ -36,9 +32,7 @@ function* all_pairs(to_compress, tree_depth) {
     }
 }
 
-/**
- * Counts 1s and 0s for every context up to a certain tree_depth.
- */
+/** Counts 1s and 0s for every context up to a certain tree_depth. */
 function scan(string, tree_depth) {
     let counts = EMPTY_COUNTS
     for (let [context, observation] of all_pairs(string, tree_depth)) {
