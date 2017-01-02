@@ -11,15 +11,15 @@ describe('kt', () => {
 
 describe('increment', () => {
     it('works twice so 1 + 1 = 2', () => {
-        let first = ctw.increment(ctw.EMPTY_COUNTS, '010', '0')
+        let first = ctw.increment(ctw.empty_tree(3), '010', '0')
         let second = ctw.increment(first, '010', '0')
-        expect(ctw.base_count(second, '010', '0')).to.equal(2)
+        expect(ctw.elementary_count(second, '010', '0')).to.equal(2)
     })
 })
 
-describe('iterate_contexts', () => {
+describe('scan', () => {
     it('makes a generator that goes over context-observation pairs', () => {
-        let generator = ctw.all_pairs('abcdef', 3)
+        let generator = ctw.scan('abcdef', 3)
         let actual = Array.from(generator)
         expect(actual).to.deep.equal([
             ['abc', 'd'],
@@ -29,29 +29,33 @@ describe('iterate_contexts', () => {
     })
 })
 
-describe('base_count', () => {
-    it('returns zeroes as counts for missing contexts', () => {
-        expect(ctw.base_count(ctw.EMPTY_COUNTS, '010', '0')).to.equal(0)
+describe('elementary_count', () => {
+    it('returns zeroes for missing contexts', () => {
+        expect(ctw.elementary_count(ctw.empty_tree(3), '010', '0')).to.equal(0)
+    })
+    it('complains if asked about a non-leaf context', () => {
+        let tree = ctw.empty_tree(3)
+        expect(ctw.elementary_count(tree, '00000', '0')).to.throw()
     })
 })
 
-xdescribe('node_count', () => {
+xdescribe('combined_count', () => {
     it('works recursively', () => {
-        let tree = ctw.EMPTY_COUNTS
+        let tree = ctw.empty_tree(3)
         tree = ctw.increment(tree, '100', '1')
         tree = ctw.increment(tree, '000', '1')
-        expect(ctw.node_count(tree, '00', '1')).to.equal(2)
+        expect(ctw.combined_count(tree, '00', '1')).to.equal(2)
     })
 })
 
-describe('scan', () => {
+describe('compile_tree', () => {
     it('counts the 0s and 1s for every context', () => {
         let sample = '0000011'
-        let actual = ctw.scan(sample, 3)
-        expect(ctw.base_count(actual, '000', '0')).to.equal(2)
-        expect(ctw.base_count(actual, '000', '1')).to.equal(1)
-        expect(ctw.base_count(actual, '001', '0')).to.equal(0)
-        expect(ctw.base_count(actual, '001', '1')).to.equal(1)
+        let actual = ctw.compile_tree(sample, 3)
+        expect(ctw.elementary_count(actual, '000', '0')).to.equal(2)
+        expect(ctw.elementary_count(actual, '000', '1')).to.equal(1)
+        expect(ctw.elementary_count(actual, '001', '0')).to.equal(0)
+        expect(ctw.elementary_count(actual, '001', '1')).to.equal(1)
     })
 })
 
