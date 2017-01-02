@@ -3,6 +3,7 @@ const Map = require('immutable').Map
 const List = require('immutable').List
 const sum = require('compute-sum')
 
+/** We store counts in a nested map[context][observation] */
 const EMPTY_COUNTS = Map()
 
 /** Computes the Krichevsky–Trofimov estimator */
@@ -21,29 +22,32 @@ const kt = memoizee(function (a, b) {
 })
 
 /** Scans the string and yields all pairs of [context, observation] */
-function* all_pairs(to_compress, tree_depth) {
-    let to_observe = tree_depth
+function* all_pairs(to_compress, max_depth) {
+    let to_observe = max_depth
     while (to_observe < to_compress.length) {
         yield [
-            to_compress.slice(to_observe - tree_depth, to_observe),
+            to_compress.slice(to_observe - max_depth, to_observe),
             to_compress[to_observe]
         ]
         ++to_observe
     }
 }
 
-/** Counts 1s and 0s for every context up to a certain tree_depth. */
-function scan(string, tree_depth) {
+/** Counts 1s and 0s for every context up to a certain max_depth. */
+function scan(string, max_depth) {
     let counts = EMPTY_COUNTS
-    for (let [context, observation] of all_pairs(string, tree_depth)) {
+    for (let [context, observation] of all_pairs(string, max_depth)) {
         counts = increment(counts, context, observation)
     }
     return counts
 }
 
-function weighted(counts, context, tree_depth) {} 
+function weighted(counts, context, max_depth) {} 
 
+/** Returns the children of a context */
 function children(context) {
+    //TODO maybe this should take a max_depth argument
+    // so it can... asssert that the children are still in the tree?
     return ['0' + context, '1' + context]
 }
 
@@ -58,16 +62,16 @@ function base_count(counts, context, observation) {
     
 }
 
-function node_count(counts, context, observation, tree_depth) {
-    if (context.length == tree_depth) {
+function node_count(counts, context, observation, max_depth) {
+    if (context.length == max_depth) {
         return base_count(counts, context, observation)
     }
-    // FIXME context.length > tree_depth comparison broken?
-    if (context.length > tree_depth) {
+    // FIXME context.length > max_depth comparison broken?
+    if (context.length > max_depth) {
         throw Error('Context outside tree depth.')
     }
     return sum(children(context).map(ctx => {
-        return node_count(counts, ctx, observation, tree_depth)
+        return node_count(counts, ctx, observation, max_depth)
     }))
 }
 
