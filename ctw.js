@@ -4,6 +4,7 @@ const Map = require('immutable').Map
 const List = require('immutable').List
 const sum = require('compute-sum')
 const memoizee = require('memoizee')
+const count = require('npm-array-unique').uniqueCount
 
 class Tree {
     constructor(max_depth, counts = Map()) {
@@ -42,19 +43,20 @@ class Tree {
     }
 }
 
-/** Computes the Krichevsky–Trofimov estimator */
-function kt(a, b) {
-    if (a == 0 && b == 0) {
+/** Computes the Krichevsky–Trofimov estimator. */
+function kt(zeroes, ones) {
+    assert(zeroes >= 0 && ones >= 0, "we're expecting non-negative numbers")
+    if (zeroes == 0 && ones == 0) {
         return 1
     }
-    if (a == 0) {
+    if (zeroes == 0) {
         // We take P(m, n + 1) = P(m, n) * (n + 1/2) / (m + n + 1) then
-        // we set m = 0 and rewrite with b = n + 1, n = b - 1.
-        return kt(0, b - 1) * (b - 1 / 2) / b
+        // we set m = 0 and rewrite with ones = n + 1, n = ones - 1.
+        return kt(0, ones - 1) * (ones - 1 / 2) / ones
     }
     // We take P(m + 1, n) = P(m, n) * (m + 1/2) / (m + n + 1)
-    // then we rewrite with a = m + 1, m = a - 1 and n = b.
-    return kt(a - 1, b) * (a - 1 / 2) / (a + b)
+    // then we rewrite with zeroes = m + 1, m = zeroes - 1 and ones = n.
+    return kt(zeroes - 1, ones) * (zeroes - 1 / 2) / (zeroes + ones)
 }
 kt = memoizee(kt)
 
@@ -79,19 +81,27 @@ function compile_tree(string, max_depth) {
     return tree
 }
 
-function weighted(counts, context, max_depth) {} 
-
-
-
-function increment(tree, context, observation) {
-    return tree.setIn(['counts', context, observation], 
-        elementary_count(tree, context, observation) + 1
-    )
+/** Returns a tuple of counts [zeroes, ones] in the string */
+function zeroes_and_ones(string) {
+    let counts = count(string.split(''))
+    return [counts['0'] ? counts['0'] : 0, counts['1'] ? counts['1'] : 0]
 }
 
+/** Computes the estimated p_e(s) averaged over all independent sources */
+function string_p(string) {
+    return kt(...zeroes_and_ones(string))
+}
 
-module.exports.kt = kt
-module.exports.Tree = Tree
-module.exports.increment = increment
-module.exports.scan = scan
-module.exports.compile_tree = compile_tree
+/** Computes the weighted probability p_w(s) of node in the tree */
+function node_p(tree, context) {
+    // compute-mean
+} 
+
+
+exports.kt = kt
+exports.Tree = Tree
+exports.scan = scan
+exports.compile_tree = compile_tree
+exports.string_p = string_p
+exports.node_p = node_p
+exports.zeroes_and_ones = zeroes_and_ones

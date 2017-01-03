@@ -8,6 +8,12 @@ describe('kt', () => {
         // A table of examples is in the doc/ directory.
         expect(ctw.kt(4, 2)).to.equal(7/1024)
     })
+    
+    it('should not recurse forever if given weird arguments', () => {
+        expect(() => {
+            ctw.kt('a monkey', undefined)
+        }).to.not.throw(RangeError)
+    })
 })
 
 describe('increment', () => {
@@ -75,5 +81,31 @@ describe('children', () => {
         expect(() => {
             tree.children('1001')
         }).to.throw(AssertionError)
+    })
+})
+
+describe('zeroes_and_ones', () => {
+    it('returns [0, 0] for the empty string', () => {
+        let actual = ctw.zeroes_and_ones('')
+        expect(actual).to.deep.equal([0, 0])
+    })
+})
+
+describe('string_p', () => {
+    it('matches examples from the paper', () => {
+        expect(ctw.string_p('0110')).to.equal(3/128)
+        expect(ctw.string_p('001')).to.equal(1/16)
+    })
+    
+    it('returns 1 for the empty string', () => {
+        expect(ctw.string_p('')).to.equal(1)
+    })
+})
+
+describe('node_p', () => {
+    it('matches the example from the paper', () => {
+        let sample = '010' + '0110100'
+        let tree = ctw.compile_tree(sample, 3)
+        expect(ctw.node_p(tree, '0')).to.equal(11/256)
     })
 })

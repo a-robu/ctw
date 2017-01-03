@@ -15,7 +15,8 @@ We don't. There are no trees. There doesen't seem to be some certain fancy
 way of building them either. Have a look at the 
 _On Prediction Using Variable Order Markov Models_ paper (snippet in `doc/`):
 ![tree-making-hint](doc/2005-paper-tree-generation.png)
-They assimilate into the tree every path they encounter in the training data.
+They put into the tree every context seen in the given string without hesitating.
+Even the paper includes the nodes for contexts that don't even occur in the tree.
 
 ## To improve
 We're computing the KT estimate with a recursive function.
