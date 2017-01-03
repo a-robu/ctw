@@ -5,6 +5,7 @@ const List = require('immutable').List
 const sum = require('compute-sum')
 const memoizee = require('memoizee')
 const count = require('npm-array-unique').uniqueCount
+const avg = require('compute-mean')
 
 class Tree {
     constructor(max_depth, counts = Map()) {
@@ -81,27 +82,33 @@ function compile_tree(string, max_depth) {
     return tree
 }
 
-/** Returns a tuple of counts [zeroes, ones] in the string */
-function zeroes_and_ones(string) {
-    let counts = count(string.split(''))
-    return [counts['0'] ? counts['0'] : 0, counts['1'] ? counts['1'] : 0]
+/** 
+ * Computes the "estimated probability for that node" the kt for the
+ * counts associated with that context.
+ * @param {Tree} tree
+ * @param {string} context
+ */
+function leaf_p(tree, context) {
+    return kt(tree.count(context, '0'), tree.count(context, '1'))
 }
 
-/** Computes the estimated p_e(s) averaged over all independent sources */
-function string_p(string) {
-    return kt(...zeroes_and_ones(string))
-}
-
-/** Computes the weighted probability p_w(s) of node in the tree */
+/** Computes the weighted probability p_w(s) of the node in the tree */
 function node_p(tree, context) {
-    // compute-mean
+    if (context.length == tree.max_depth) {
+        return leaf_p(tree, context)
+    }
+    else {
+        let [child_a, child_b] = tree.children(context)
+        return avg([
+            leaf_p(tree, context),
+            node_p(tree, child_a) * node_p(tree, child_b)
+        ])
+    }
 } 
-
 
 exports.kt = kt
 exports.Tree = Tree
 exports.scan = scan
 exports.compile_tree = compile_tree
-exports.string_p = string_p
+exports.leaf_p = leaf_p
 exports.node_p = node_p
-exports.zeroes_and_ones = zeroes_and_ones

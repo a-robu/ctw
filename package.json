@@ -22,6 +22,7 @@
   "homepage": "https://github.com/andrewrocks/ctw#readme",
   "dependencies": {
     "chai": "^3.5.0",
+    "compute-mean": "^3.0.0",
     "compute-sum": "^2.0.0",
     "immutable": "^3.8.1",
     "leasot": "^4.3.0",

@@ -4,9 +4,15 @@ const ctw = require('./ctw')
 const AssertionError = require('assert').AssertionError
 
 describe('kt', () => {
-    it('should match an example', () => {
-        // A table of examples is in the doc/ directory.
-        expect(ctw.kt(4, 2)).to.equal(7/1024)
+    it('should match an example from the paper', () => {
+        expect(ctw.kt(4, 3)).to.equal(5/2048)
+    })
+
+    it('matches examples from the table in doc/', () => {
+        expect(ctw.kt(1, 1)).to.equal(1/8)
+        expect(ctw.kt(0, 1)).to.equal(1/2)
+        expect(ctw.kt(1, 0)).to.equal(1/2)
+        expect(ctw.kt(2, 5)).to.equal(9/2048)
     })
     
     it('should not recurse forever if given weird arguments', () => {
@@ -61,12 +67,16 @@ describe('count', () => {
 
 describe('compile_tree', () => {
     it('counts the 0s and 1s for every context', () => {
-        let sample = '0000011'
-        let actual = ctw.compile_tree(sample, 3)
-        expect(actual.count('000', '0')).to.equal(2)
-        expect(actual.count('000', '1')).to.equal(1)
-        expect(actual.count('001', '0')).to.equal(0)
-        expect(actual.count('001', '1')).to.equal(1)
+        let tree = ctw.compile_tree('000' + '0011', 3)
+        expect(tree.count('000', '0')).to.equal(2)
+        expect(tree.count('000', '1')).to.equal(1)
+        expect(tree.count('001', '0')).to.equal(0)
+        expect(tree.count('001', '1')).to.equal(1)
+    })
+
+    it('returns a tree with the correct max_depth', () => {
+        let tree = ctw.compile_tree('001001001', 4)
+        expect(tree.max_depth).to.equal(4)
     })
 })
 
@@ -84,25 +94,33 @@ describe('children', () => {
     })
 })
 
-describe('zeroes_and_ones', () => {
-    it('returns [0, 0] for the empty string', () => {
-        let actual = ctw.zeroes_and_ones('')
-        expect(actual).to.deep.equal([0, 0])
-    })
-})
-
-describe('string_p', () => {
-    it('matches examples from the paper', () => {
-        expect(ctw.string_p('0110')).to.equal(3/128)
-        expect(ctw.string_p('001')).to.equal(1/16)
-    })
-    
-    it('returns 1 for the empty string', () => {
-        expect(ctw.string_p('')).to.equal(1)
-    })
-})
-
 describe('node_p', () => {
+    it('computes correctly for leaves', () => {
+        let tree = ctw.compile_tree('000' + '111', 3)
+        expect(ctw.node_p(tree, '000')).to.equal(1/2)
+    })
+    it('matches a really tiny example', () => {
+        let tree = ctw.compile_tree('0' + '0', 1)
+        expect(ctw.node_p(tree, '')).to.equal(1/2)
+    })
+    it('matches hand calculation', () => {
+        let tree = ctw.compile_tree('00' + '110', 2)
+        // Contexts and observations are the following: 00>1, 01>1, 11>0
+        // So let's look at the leaf nodes and compute their weighted p.:
+        // pw(00) = kt(0, 1) = 1/2
+        // pw(10) = kt(0, 0) = 1
+        // pw(01) = kt(0, 1) = 1/2
+        // pw(11) = kt(1, 0) = 1/2
+        // Now let's look at the middle layer of the tree:
+        // pw(0) = 1/2 kt(0, 1) + 1/2 pw(00) * pw(10)
+        //       = 1/2 * 1/2 + 1/2 * 1/2 * 1 = 1/2
+        // pw(1) = 1/2 kt(1, 1) + 1/2 pw(11) * pw(01)
+        //       = 1/2 * 1/8 + 1/2 * 1/2 * 1/2 = 3/16
+        // And finally for the root:
+        // pw(ε) = 1/2 kt(1, 2) + 1/2 pw(0) * pw(1)
+        //       = 1/2 * 1/16 + 1/2 * 1/2 * 3/16
+        expect(ctw.node_p(tree, '')).to.equal(5/64)
+    })
     it('matches the example from the paper', () => {
         let sample = '010' + '0110100'
         let tree = ctw.compile_tree(sample, 3)
