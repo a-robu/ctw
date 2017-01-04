@@ -1,8 +1,8 @@
 # ctw
-Implementation of the Context Tree Weighting algorithm.
+Implementation of the Context Tree Weighting algorithm as described in the
+[paper by M. J. Willems](http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.30.1819).
 
 ## Install and run unit tests
-
 Requires the javascript `node` environment.
 
 ```
@@ -20,6 +20,11 @@ We compute the KT estimator with the recursive function shown on
 We test the implementation against examples from 
 Data Compression: The Complete Reference.
 ![textbook-examples](doc/kt-table-david-salomon-data-compression.png)
+
+## Example Tree
+Our code can compute the _estimated probability_ and _weighted probability_
+for every node in the tree, just like in this diagram from the paper.
+![diagram-of-tree](doc/example-weighed-tree.png)
 
 ## How we build the trees
 We don't. There are no trees. There doesen't seem to be some certain fancy
