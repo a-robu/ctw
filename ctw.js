@@ -4,7 +4,6 @@ const Map = require('immutable').Map
 const List = require('immutable').List
 const sum = require('compute-sum')
 const memoizee = require('memoizee')
-const count = require('npm-array-unique').uniqueCount
 const avg = require('compute-mean')
 
 class Tree {
