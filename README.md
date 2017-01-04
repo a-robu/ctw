@@ -1,6 +1,17 @@
 # ctw
 Implementation of the Context Tree Weighting algorithm.
 
+## Install and run unit tests
+
+Requires the javascript `node` environment.
+
+```
+git clone git@github.com:andrewrocks/ctw.git
+cd ctw
+npm install
+npm test
+```
+
 ## Krichevsky–Trofimov estimator
 We compute the KT estimator with the recursive function shown on 
 [wikipedia](https://en.wikipedia.org/w/index.php?title=Krichevsky%E2%80%93Trofimov_estimator&oldid=753863516).
