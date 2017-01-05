@@ -29,7 +29,7 @@ for every node in the tree, just like in this diagram from the paper.
 ## How we build the trees
 We don't. There are no trees. There doesen't seem to be some certain fancy
 way of building them either. Have a look at the 
-_On Prediction Using Variable Order Markov Models_ paper (snippet in `doc/`):
+_On Prediction Using Variable Order Markov Models_ paper:
 ![tree-making-hint](doc/2005-paper-tree-generation.png)
 They put into the tree every context seen in the given string without hesitating.
 Even the paper includes the nodes for contexts that don't even occur in the tree.
