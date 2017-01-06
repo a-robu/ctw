@@ -94,6 +94,12 @@ describe('compile_tree', () => {
         let tree = ctw.compile_tree('001001001', 4)
         expect(tree.max_depth).to.equal(4)
     })
+
+    it('complains if the string is not long enough for the depth', () => {
+        expect(() => {
+            ctw.compile_tree('000', 5)
+        }).to.throw(AssertionError)
+    })
 })
 
 describe('node_p', () => {

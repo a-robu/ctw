@@ -62,6 +62,7 @@ kt = memoizee(kt)
 
 /** Scans the string and yields all pairs of [context, observation] */
 function* scan(to_compress, max_depth) {
+    assert(to_compress.length >= max_depth, 'string shorter than depth')
     let to_observe = max_depth
     while (to_observe < to_compress.length) {
         yield [
