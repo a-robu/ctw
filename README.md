@@ -35,6 +35,12 @@ paper:
 They put into the tree every context seen in the given string without hesitating.
 Even the paper includes the nodes for contexts that don't even occur in the tree.
 
+## Initial Context
+Because the algorithm requires an initial context for the string to be
+processed, we chop away D bits from the strings to use as context, the way they do
+in the (prediction paper)[https://www.jair.org/media/1491/live-1491-2335-jair.pdf], 
+![diagram-of-tree](doc/ignore-the-d.png)
+
 ## Prediction
 Intuitivley we would have expected to see more conditional probability 
 assignments in the CTW paper, but apparently they can simply be implicit.
