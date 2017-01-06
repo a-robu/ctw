@@ -29,10 +29,19 @@ for every node in the tree, just like in this diagram from the paper.
 ## How we build the trees
 We don't. There are no trees. There doesen't seem to be some certain fancy
 way of building them either. Have a look at the 
-_On Prediction Using Variable Order Markov Models_ paper:
+(On Prediction Using Variable Order Markov Models)[https://www.jair.org/media/1491/live-1491-2335-jair.pdf] 
+paper:
 ![tree-making-hint](doc/2005-paper-tree-generation.png)
 They put into the tree every context seen in the given string without hesitating.
 Even the paper includes the nodes for contexts that don't even occur in the tree.
+
+## Prediction
+Intuitivley we would have expected to see more conditional probability 
+assignments in the CTW paper, but apparently they can simply be implicit.
+In (On Prediction Using Variable Order Markov Models)[https://www.jair.org/media/1491/live-1491-2335-jair.pdf], 
+they actually say that they switch between a complete probability distribution
+and a conditional one interchangebly.
+![interchangable-snippet](doc/interchangeable-probability.png)
 
 ## To improve
 We're computing the KT estimate with a recursive function.
