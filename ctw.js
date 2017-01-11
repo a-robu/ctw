@@ -61,7 +61,9 @@ function kt(zeroes, ones) {
 kt = memoizee(kt)
 
 /** Scans the string and yields all pairs of [context, observation] */
-function* scan(to_compress, max_depth) {
+function* scan(init_ctx, string) {
+    let max_depth = init_ctx.length
+    let to_compress = init_ctx + string
     assert(to_compress.length >= max_depth, 'string shorter than depth')
     let to_observe = max_depth
     while (to_observe < to_compress.length) {
@@ -73,13 +75,18 @@ function* scan(to_compress, max_depth) {
     }
 }
 
-/** Builds the tree of observation counts for the given string. */
-function compile_tree(string, max_depth) {
-    let tree = new Tree(max_depth)
-    for (let [context, observation] of scan(string, max_depth)) {
+/** Yields trees after each observation in the given string. */
+function* yield_trees(init_ctx, string) {
+    let tree = new Tree(init_ctx.length)
+    for (let [context, observation] of scan(init_ctx, string)) {
         tree = tree.increment(context, observation)
+        yield tree
     }
-    return tree
+}
+
+function final_tree(init_ctx, string) {
+    let trees = Array.from(yield_trees(init_ctx, string))
+    return trees[trees.length - 1]
 }
 
 /** 
@@ -106,9 +113,18 @@ function node_p(tree, context) {
     }
 } 
 
+/**
+ * Returns the weighted coding distribution for the string
+ * which has been processed.
+ */
+function ask_tree(tree) {
+    return node_p(tree, '')
+}
+
 exports.kt = kt
 exports.Tree = Tree
 exports.scan = scan
-exports.compile_tree = compile_tree
+exports.yield_trees = yield_trees
+exports.final_tree = final_tree
 exports.leaf_p = leaf_p
 exports.node_p = node_p

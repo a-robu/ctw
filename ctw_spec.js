@@ -71,7 +71,7 @@ describe('Tree', () => {
 
 describe('scan', () => {
     it('makes a generator that goes over context-observation pairs', () => {
-        let generator = ctw.scan('abcdef', 3)
+        let generator = ctw.scan('abc', 'def')
         let actual = Array.from(generator)
         expect(actual).to.deep.equal([
             ['abc', 'd'],
@@ -81,38 +81,34 @@ describe('scan', () => {
     })
 })
 
-describe('compile_tree', () => {
+describe('final_tree', () => {
     it('counts the 0s and 1s for every context', () => {
-        let tree = ctw.compile_tree('000' + '0011', 3)
+        let tree = ctw.final_tree('000', '0011')
         expect(tree.count('000', '0')).to.equal(2)
         expect(tree.count('000', '1')).to.equal(1)
         expect(tree.count('001', '0')).to.equal(0)
         expect(tree.count('001', '1')).to.equal(1)
     })
 
-    it('returns a tree with the correct max_depth', () => {
-        let tree = ctw.compile_tree('001001001', 4)
+    it('returns a tree with a depth the size of the pre-string context', () => {
+        let tree = ctw.final_tree('0010', '01001')
         expect(tree.max_depth).to.equal(4)
-    })
-
-    it('complains if the string is not long enough for the depth', () => {
-        expect(() => {
-            ctw.compile_tree('000', 5)
-        }).to.throw(AssertionError)
     })
 })
 
 describe('node_p', () => {
     it('computes correctly for leaves', () => {
-        let tree = ctw.compile_tree('000' + '111', 3)
+        let tree = ctw.final_tree('000', '111')
         expect(ctw.node_p(tree, '000')).to.equal(1/2)
     })
+
     it('works on the minimal example that requires recursion', () => {
-        let tree = ctw.compile_tree('0' + '0', 1)
+        let tree = ctw.final_tree('0' + '0', 1)
         expect(ctw.node_p(tree, '')).to.equal(1/2)
     })
+
     it('matches a long-winded hand calculation', () => {
-        let tree = ctw.compile_tree('00' + '110', 2)
+        let tree = ctw.final_tree('00', '110')
         // Contexts and observations are the following: 00>1, 01>1, 11>0
         // So let's look at the leaf nodes and compute their weighted p.:
         // pw(00) = kt(0, 1) = 1/2
@@ -129,9 +125,9 @@ describe('node_p', () => {
         //       = 1/2 * 1/16 + 1/2 * 1/2 * 3/16
         expect(ctw.node_p(tree, '')).to.equal(5/64)
     })
+
     it('matches an example from the paper', () => {
-        let sample = '010' + '0110100'
-        let tree = ctw.compile_tree(sample, 3)
+        let tree = ctw.final_tree('010', '0110100')
         expect(ctw.node_p(tree, '0')).to.equal(11/256)
     })
 })
