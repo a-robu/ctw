@@ -64,7 +64,6 @@ kt = memoizee(kt)
 function* scan(init_ctx, string) {
     let max_depth = init_ctx.length
     let to_compress = init_ctx + string
-    assert(to_compress.length >= max_depth, 'string shorter than depth')
     let to_observe = max_depth
     while (to_observe < to_compress.length) {
         yield [
@@ -121,6 +120,19 @@ function ask_tree(tree) {
     return node_p(tree, '')
 }
 
+/**
+ * Returns a probability distribution for the next observation.
+ * 
+ * Does this by making two joint probabilities and obtaining a
+ * conditional probability from them. Basically, p(a|b) = p(a, b)/p(b).
+ * @param {Tree} tree
+ * @param {string} future_observation
+ */
+function predict(tree, future_observation) {
+    let future_tree = tree.increment(future_observation)
+    return ask_tree(future_tree) / ask_tree(tree)
+}
+
 exports.kt = kt
 exports.Tree = Tree
 exports.scan = scan
@@ -128,3 +140,4 @@ exports.yield_trees = yield_trees
 exports.final_tree = final_tree
 exports.leaf_p = leaf_p
 exports.node_p = node_p
+exports.predict = predict

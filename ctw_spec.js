@@ -131,3 +131,10 @@ describe('node_p', () => {
         expect(ctw.node_p(tree, '0')).to.equal(11/256)
     })
 })
+
+describe('predict', () => {
+    it('matches the kt estimator for a depth of 1', () => {
+        let tree = ctw.final_tree('0', '0')
+        expect(ctw.predict(tree, 0)).to.equal((2 + 1/2) / (2 + 1))
+    })
+})

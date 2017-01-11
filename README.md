@@ -17,6 +17,12 @@ We compute the KT estimator with the recursive function shown on
 [wikipedia](https://en.wikipedia.org/w/index.php?title=Krichevsky%E2%80%93Trofimov_estimator&oldid=753863516).
 ![wikipedia-function](doc/kt-recursive-wikipedia.png)
 
+And there's another way to write the formula
+
+![textbook-examples](doc/another-kt-formula.png)
+
+which we see in [On Prediction Using Variable Order Markov Models](https://www.jair.org/media/1491/live-1491-2335-jair.pdf).
+
 We test the implementation against examples from 
 Data Compression: The Complete Reference.
 ![textbook-examples](doc/kt-table-david-salomon-data-compression.png)
