@@ -17,7 +17,13 @@ class Tree {
         return this._max_depth
     }
 
+    equals(tree) {
+        return ((this.max_depth == tree.max_depth)
+            && this._counts.equals(tree._counts))
+    }
+
     increment(context, observation) {
+        assert.equal(this.max_depth, context.length)
         const old_val = this._elementary_count(context, observation)
         const new_counts = this._counts.setIn([context, observation], old_val + 1)
         return new Tree(this.max_depth, new_counts)
@@ -84,6 +90,7 @@ function* yield_trees(init_ctx, string) {
 }
 
 function final_tree(init_ctx, string) {
+    //TODO optimise memory by implementing a get_last(iterator) function
     let trees = Array.from(yield_trees(init_ctx, string))
     return trees[trees.length - 1]
 }
@@ -116,7 +123,7 @@ function node_p(tree, context) {
  * Returns the weighted coding distribution for the string
  * which has been processed.
  */
-function ask_tree(tree) {
+function tree_p(tree) {
     return node_p(tree, '')
 }
 
@@ -130,7 +137,7 @@ function ask_tree(tree) {
  */
 function predict(tree, future_observation) {
     let future_tree = tree.increment(future_observation)
-    return ask_tree(future_tree) / ask_tree(tree)
+    return tree_p(future_tree) / tree_p(tree)
 }
 
 exports.kt = kt
@@ -140,4 +147,5 @@ exports.yield_trees = yield_trees
 exports.final_tree = final_tree
 exports.leaf_p = leaf_p
 exports.node_p = node_p
+exports.tree_p = tree_p
 exports.predict = predict

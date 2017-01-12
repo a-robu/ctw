@@ -37,11 +37,26 @@ describe('Tree', () => {
             const tree = new ctw.Tree(3)
             expect(tree._elementary_count('010', '0')).to.equal(0)
         })
+
         it('complains if asked about a non-leaf context', () => {
             let tree = new ctw.Tree(3)
             expect(() => {
                 tree._elementary_count('00000', '0')
             }).to.throw(AssertionError)
+        })
+    })
+
+    describe('equals', () => {
+        it('returns true if they are equal', () => {
+            let one_tree = new ctw.Tree(3).increment('010', '0')
+            let other_tree = new ctw.Tree(3).increment('010', '0')
+            expect(one_tree.equals(other_tree)).to.be.true
+        })
+
+        it('returns false if they have different counts', () => {
+            let one_tree = new ctw.Tree(3).increment('010', '0')
+            let other_tree = new ctw.Tree(3).increment('011', '1')
+            expect(one_tree.equals(other_tree)).to.be.false
         })
     })
 
@@ -51,6 +66,12 @@ describe('Tree', () => {
             tree = tree.increment('100', '1')
             tree = tree.increment('000', '1')
             expect(tree.count('00', '1')).to.equal(2)
+        })
+
+        it('does not change the original tree', () => {
+            const tree = new ctw.Tree(3)
+            tree.increment('001', '0')
+            expect(tree.count('001', '0')).to.equal(0)
         })
     })
 
@@ -94,6 +115,13 @@ describe('final_tree', () => {
         let tree = ctw.final_tree('0010', '01001')
         expect(tree.max_depth).to.equal(4)
     })
+
+    it('basically just increments', () => {
+        let incr_tree = ctw.final_tree('0', '0')
+        incr_tree = incr_tree.increment('0', '0')
+        let already_tree = ctw.final_tree('0', '00')
+        expect(incr_tree.equals(already_tree)).to.be.true
+    })
 })
 
 describe('node_p', () => {
@@ -133,8 +161,15 @@ describe('node_p', () => {
 })
 
 describe('predict', () => {
-    it('matches the kt estimator for a depth of 1', () => {
+    it('works on a tiny example', () => {
         let tree = ctw.final_tree('0', '0')
-        expect(ctw.predict(tree, 0)).to.equal((2 + 1/2) / (2 + 1))
+        expect(ctw.predict(tree, '0')).to.equal((3/8) / (1/2))
+    })
+})
+
+describe('tree_p', () => {
+    it('works on tiny examples', () => {
+        expect(ctw.tree_p(ctw.final_tree('0', '0'))).to.equal(1/2)
+        expect(ctw.tree_p(ctw.final_tree('0', '00'))).to.equal(3/8)
     })
 })
