@@ -5,6 +5,7 @@ const List = require('immutable').List
 const sum = require('compute-sum')
 const memoizee = require('memoizee')
 const avg = require('compute-mean')
+const InvalidArgument = require('node-exceptions').InvalidArgumentException
 
 class Tree {
     constructor(max_depth, counts = Map()) {
@@ -23,6 +24,9 @@ class Tree {
     }
 
     increment(context, observation) {
+        if (observation === undefined) {
+            throw new InvalidArgument('observation is required')
+        }
         assert.equal(this.max_depth, context.length)
         const old_val = this._elementary_count(context, observation)
         const new_counts = this._counts.setIn([context, observation], old_val + 1)
@@ -136,7 +140,8 @@ function tree_p(tree) {
  * @param {string} future_observation
  */
 function predict(tree, future_observation) {
-    let future_tree = tree.increment(future_observation)
+    //FIXME should create a new func "append" instead of using increment
+    let future_tree = tree.increment(future_observation, )
     return tree_p(future_tree) / tree_p(tree)
 }
 

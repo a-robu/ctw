@@ -2,6 +2,7 @@ const Map = require('immutable').Map
 const expect = require('chai').expect
 const ctw = require('./ctw')
 const AssertionError = require('assert').AssertionError
+const InvalidArgument = require('node-exceptions').InvalidArgumentException
 
 describe('kt', () => {
     it('should match an example from the paper', () => {
@@ -29,6 +30,12 @@ describe('Tree', () => {
             const first = empty.increment('010', '0')
             const second = first.increment('010', '0')
             expect(second.count('010', '0')).to.equal(2)
+        })
+
+        it("complains if you don't give it an observation", () => {
+            expect(() => {
+                new ctw.Tree(3).increment('0100')
+            }).to.throw(InvalidArgument)
         })
     })
 
