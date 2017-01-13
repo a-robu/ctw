@@ -12,6 +12,16 @@ npm install
 npm test
 ```
 
+## How to use the predictor
+To estimate the probability of the next symbol in a string.
+```
+> const ctw = require('./ctw')
+> new ctw.Predictor('01010101010101', 2).predict('0')
+0.9281081081081081
+> new ctw.Predictor('01010101010101', 2).predict('1')
+0.0718918918918919
+```
+
 ## Krichevsky–Trofimov estimator
 We compute the KT estimator with the recursive function shown on 
 [wikipedia](https://en.wikipedia.org/w/index.php?title=Krichevsky%E2%80%93Trofimov_estimator&oldid=753863516).
