@@ -125,7 +125,12 @@ class Predictor {
         }
     }
 
-    /** Yields Predictor's after each observation in the given string. */
+    /** 
+     * This generator yields Predictor's for each possible history.
+     * In a D + N string (depth plus remaining symbols), we will
+     * yield N + 1 predictors. One with only the context as the history
+     * and another predictor for each remaining symbol in the string.
+     * */
     static* all_predictors(string, max_depth) {
         let init_ctx = first_chars(string, max_depth)
         let predictor = new Predictor(init_ctx, max_depth)
