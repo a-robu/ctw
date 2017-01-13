@@ -1,6 +1,6 @@
 {
   "name": "ctw",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Implementation of the Context Tree Weighting algorithm.",
   "main": "ctw.js",
   "scripts": {
