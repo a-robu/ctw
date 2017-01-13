@@ -5,7 +5,6 @@ const List = require('immutable').List
 const sum = require('compute-sum')
 const memoizee = require('memoizee')
 const avg = require('compute-mean')
-const InvalidArgument = require('node-exceptions').InvalidArgumentException
 
 class Tree {
     constructor(max_depth, counts = Map()) {
@@ -24,9 +23,7 @@ class Tree {
     }
 
     increment(context, observation) {
-        if (observation === undefined) {
-            throw new InvalidArgument('observation is required')
-        }
+        assert(observation, 'observation is required')
         assert.equal(this.max_depth, context.length)
         const old_val = this._elementary_count(context, observation)
         const new_counts = this._counts.setIn([context, observation], old_val + 1)
@@ -39,6 +36,7 @@ class Tree {
     }
 
     count(context, observation) {
+        assert(observation, 'observation is required')
         if (context.length == this.max_depth) {
             return this._elementary_count(context, observation)
         }
@@ -48,9 +46,53 @@ class Tree {
     }
 
     children(context) {
-        assert(context.length < this.max_depth, 'went too deep. no more children')
+        assert(context.length < this.max_depth,
+            'went too deep. no more children')
         return ['0' + context, '1' + context]
     }
+}
+
+class Predictor {
+    constructor(string, max_depth, _precomputed_tree = null) {
+        assert(typeof(max_depth) == 'number', 'max_depth is required')
+        this.history = string
+        this.max_depth = max_depth
+        if (string.length == max_depth) {
+            this.tree = new Tree(max_depth)
+        }
+        else if (_precomputed_tree) {
+            this.tree = _precomputed_tree
+        }
+        else {
+            // this.tree = last_element(all_predictors)
+            throw new Error('not implemented')
+        }
+        Object.freeze(this)
+    }
+
+    next(observation) {
+        let new_history = this.history + observation
+        let new_tree = this.tree.increment(this.context, observation)
+        return new Predictor(new_history, this.max_depth, new_tree)
+    }
+
+    get context() {
+        if (this.history.length == this.max_depth) {
+            return this.history
+        }
+        else {
+            return last_chars(this.history, this.max_depth)
+        }
+    }
+
+    /** Yields Predictor's after each observation in the given string. */
+    static* all_predictors(string, max_depth) {
+        
+    }
+}
+
+function last_chars(str, n) {
+    return str.slice(str.length - n)
 }
 
 /** Computes the Krichevsky–Trofimov estimator. */
@@ -70,6 +112,14 @@ function kt(zeroes, ones) {
 }
 kt = memoizee(kt)
 
+function* yield_trees(init_ctx, string) {
+    let tree = new Tree(init_ctx.length)
+    for (let [context, observation] of scan(init_ctx, string)) {
+        tree = tree.increment(context, observation)
+        yield tree
+    }
+}
+
 /** Scans the string and yields all pairs of [context, observation] */
 function* scan(init_ctx, string) {
     let max_depth = init_ctx.length
@@ -81,15 +131,6 @@ function* scan(init_ctx, string) {
             to_compress[to_observe]
         ]
         ++to_observe
-    }
-}
-
-/** Yields trees after each observation in the given string. */
-function* yield_trees(init_ctx, string) {
-    let tree = new Tree(init_ctx.length)
-    for (let [context, observation] of scan(init_ctx, string)) {
-        tree = tree.increment(context, observation)
-        yield tree
     }
 }
 
@@ -139,18 +180,18 @@ function tree_p(tree) {
  * @param {Tree} tree
  * @param {string} future_observation
  */
-function predict(tree, future_observation) {
-    //FIXME should create a new func "append" instead of using increment
-    let future_tree = tree.increment(future_observation, )
+function predict(tree, ctx, future_observation) {
+    let future_tree = tree.increment(ctx, future_observation)
     return tree_p(future_tree) / tree_p(tree)
 }
 
+exports.last_chars = last_chars
 exports.kt = kt
 exports.Tree = Tree
 exports.scan = scan
-exports.yield_trees = yield_trees
 exports.final_tree = final_tree
 exports.leaf_p = leaf_p
 exports.node_p = node_p
 exports.tree_p = tree_p
 exports.predict = predict
+exports.Predictor = Predictor

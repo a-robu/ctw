@@ -2,7 +2,12 @@ const Map = require('immutable').Map
 const expect = require('chai').expect
 const ctw = require('./ctw')
 const AssertionError = require('assert').AssertionError
-const InvalidArgument = require('node-exceptions').InvalidArgumentException
+
+describe('last_chars', () => {
+    it('works for an example', () => {
+        expect(ctw.last_chars('123456', 3)).to.equal('456')
+    })
+})
 
 describe('kt', () => {
     it('should match an example from the paper', () => {
@@ -24,7 +29,7 @@ describe('kt', () => {
 })
 
 describe('Tree', () => {
-    describe('increment', () => {
+    describe('.increment', () => {
         it('works twice so 1 + 1 = 2', () => {
             const empty = new ctw.Tree(3)
             const first = empty.increment('010', '0')
@@ -35,11 +40,11 @@ describe('Tree', () => {
         it("complains if you don't give it an observation", () => {
             expect(() => {
                 new ctw.Tree(3).increment('0100')
-            }).to.throw(InvalidArgument)
+            }).to.throw(AssertionError)
         })
     })
 
-    describe('_elementary_count', () => {
+    describe('._elementary_count', () => {
         it('returns zeroes for missing contexts', () => {
             const tree = new ctw.Tree(3)
             expect(tree._elementary_count('010', '0')).to.equal(0)
@@ -53,7 +58,7 @@ describe('Tree', () => {
         })
     })
 
-    describe('equals', () => {
+    describe('.equals', () => {
         it('returns true if they are equal', () => {
             let one_tree = new ctw.Tree(3).increment('010', '0')
             let other_tree = new ctw.Tree(3).increment('010', '0')
@@ -67,7 +72,7 @@ describe('Tree', () => {
         })
     })
 
-    describe('count', () => {
+    describe('.count', () => {
         it('works recursively', () => {
             let tree = new ctw.Tree(3)
             tree = tree.increment('100', '1')
@@ -82,7 +87,7 @@ describe('Tree', () => {
         })
     })
 
-    describe('children', () => {
+    describe('.children', () => {
         it('expands context strings by prepending them with 0 and 1', () => {
             const tree = new ctw.Tree(5)
             expect(tree.children('1001')).to.deep.equal(['01001', '11001'])
@@ -97,7 +102,7 @@ describe('Tree', () => {
     })
 })
 
-describe('scan', () => {
+xdescribe('scan', () => {
     it('makes a generator that goes over context-observation pairs', () => {
         let generator = ctw.scan('abc', 'def')
         let actual = Array.from(generator)
@@ -109,7 +114,7 @@ describe('scan', () => {
     })
 })
 
-describe('final_tree', () => {
+xdescribe('final_tree', () => {
     it('counts the 0s and 1s for every context', () => {
         let tree = ctw.final_tree('000', '0011')
         expect(tree.count('000', '0')).to.equal(2)
@@ -131,7 +136,7 @@ describe('final_tree', () => {
     })
 })
 
-describe('node_p', () => {
+xdescribe('node_p', () => {
     it('computes correctly for leaves', () => {
         let tree = ctw.final_tree('000', '111')
         expect(ctw.node_p(tree, '000')).to.equal(1/2)
@@ -167,16 +172,54 @@ describe('node_p', () => {
     })
 })
 
-describe('predict', () => {
-    it('works on a tiny example', () => {
-        let tree = ctw.final_tree('0', '0')
-        expect(ctw.predict(tree, '0')).to.equal((3/8) / (1/2))
-    })
-})
-
-describe('tree_p', () => {
+xdescribe('tree_p', () => {
     it('works on tiny examples', () => {
         expect(ctw.tree_p(ctw.final_tree('0', '0'))).to.equal(1/2)
         expect(ctw.tree_p(ctw.final_tree('0', '00'))).to.equal(3/8)
+    })
+})
+
+describe('Predictor', () => {
+    xdescribe('.predict', () => {
+        it('works on a tiny example', () => {
+            let predictor = new ctw.Predictor('00', 1)
+            expect(predictor.predict('0')).to.equal((3/8) / (1/2))
+        })
+    })
+
+    describe('.construct', () => {
+        it('produces a empty tree in base case', () => {
+            let predictor = new ctw.Predictor('0', 1)
+            expect(predictor.tree.equals(new ctw.Tree(1))).to.be.true
+        })
+    })
+
+    describe('.context', () => {
+        it('returns the string in the base case', () => {
+            let predictor = new ctw.Predictor('010', 3)
+            expect(predictor.context).to.equal('010')
+        })
+
+        it('returns the correct context for longer strings', () => {
+            let predictor = new ctw.Predictor('001001', 3)
+            expect(predictor.context).to.equal('001')
+        })
+    })
+
+    describe('.next', () => {
+        it('returns the next predictor after reading an observation', () => {
+            const predictor = new ctw.Predictor('0', 1)
+            const new_pred = predictor.next('0')
+            expect(new_pred.tree.count('0')).to.equal(1)
+        })
+    })
+
+    describe('.all_predictors', () => {
+        xit('yields all predictors as it scans the string', () => {
+            const actual = Array.from(ctw.Predictor.all_predictors('001', 1))
+            const first_exp = new ctw.Predictor('0', 1).read('0')
+            // const second_expected = new ctw.
+
+        })
     })
 })
