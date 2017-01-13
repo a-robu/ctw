@@ -9,6 +9,25 @@ describe('last_chars', () => {
     })
 })
 
+describe('first_chars', () => {
+    it('works for an example', () => {
+        expect(ctw.first_chars('abcdefghijk', 3)).to.equal('abc')
+    })
+})
+
+describe('last_item', () => {
+    it('works on a list', () => {
+        expect(ctw.last_item(['a', 'b', 'c'])).to.equal('c')
+    })
+
+    it('works on a generator', () => {
+        let generator = function* () {
+            yield 'x'; yield 'y'; yield 'z';
+        }
+        expect(ctw.last_item(generator())).to.equal('z')
+    })
+})
+
 describe('kt', () => {
     it('should match an example from the paper', () => {
         expect(ctw.kt(4, 3)).to.equal(5/2048)
@@ -102,53 +121,19 @@ describe('Tree', () => {
     })
 })
 
-xdescribe('scan', () => {
-    it('makes a generator that goes over context-observation pairs', () => {
-        let generator = ctw.scan('abc', 'def')
-        let actual = Array.from(generator)
-        expect(actual).to.deep.equal([
-            ['abc', 'd'],
-            ['bcd', 'e'],
-            ['cde', 'f']
-        ])
-    })
-})
-
-xdescribe('final_tree', () => {
-    it('counts the 0s and 1s for every context', () => {
-        let tree = ctw.final_tree('000', '0011')
-        expect(tree.count('000', '0')).to.equal(2)
-        expect(tree.count('000', '1')).to.equal(1)
-        expect(tree.count('001', '0')).to.equal(0)
-        expect(tree.count('001', '1')).to.equal(1)
-    })
-
-    it('returns a tree with a depth the size of the pre-string context', () => {
-        let tree = ctw.final_tree('0010', '01001')
-        expect(tree.max_depth).to.equal(4)
-    })
-
-    it('basically just increments', () => {
-        let incr_tree = ctw.final_tree('0', '0')
-        incr_tree = incr_tree.increment('0', '0')
-        let already_tree = ctw.final_tree('0', '00')
-        expect(incr_tree.equals(already_tree)).to.be.true
-    })
-})
-
-xdescribe('node_p', () => {
+describe('node_p', () => {
     it('computes correctly for leaves', () => {
-        let tree = ctw.final_tree('000', '111')
+        let tree = new ctw.Predictor('000' + '111', 3).tree
         expect(ctw.node_p(tree, '000')).to.equal(1/2)
     })
 
     it('works on the minimal example that requires recursion', () => {
-        let tree = ctw.final_tree('0' + '0', 1)
+        let tree = new ctw.Predictor('0' + '0', 1).tree
         expect(ctw.node_p(tree, '')).to.equal(1/2)
     })
 
     it('matches a long-winded hand calculation', () => {
-        let tree = ctw.final_tree('00', '110')
+        let tree = new ctw.Predictor('00' + '110', 2).tree
         // Contexts and observations are the following: 00>1, 01>1, 11>0
         // So let's look at the leaf nodes and compute their weighted p.:
         // pw(00) = kt(0, 1) = 1/2
@@ -167,20 +152,22 @@ xdescribe('node_p', () => {
     })
 
     it('matches an example from the paper', () => {
-        let tree = ctw.final_tree('010', '0110100')
+        let tree = new ctw.Predictor('010' + '0110100', 3).tree
         expect(ctw.node_p(tree, '0')).to.equal(11/256)
     })
 })
 
-xdescribe('tree_p', () => {
+describe('tree_p', () => {
     it('works on tiny examples', () => {
-        expect(ctw.tree_p(ctw.final_tree('0', '0'))).to.equal(1/2)
-        expect(ctw.tree_p(ctw.final_tree('0', '00'))).to.equal(3/8)
+        let small_tree = new ctw.Predictor('0' + '0', 1).tree
+        let bigger_tree = new ctw.Predictor('0' + '00', 1).tree
+        expect(ctw.tree_p(small_tree)).to.equal(1/2)
+        expect(ctw.tree_p(bigger_tree)).to.equal(3/8)
     })
 })
 
 describe('Predictor', () => {
-    xdescribe('.predict', () => {
+    describe('.predict', () => {
         it('works on a tiny example', () => {
             let predictor = new ctw.Predictor('00', 1)
             expect(predictor.predict('0')).to.equal((3/8) / (1/2))
@@ -191,6 +178,11 @@ describe('Predictor', () => {
         it('produces a empty tree in base case', () => {
             let predictor = new ctw.Predictor('0', 1)
             expect(predictor.tree.equals(new ctw.Tree(1))).to.be.true
+        })
+
+        it('builds the correct tree for longer strings', () => {
+            let tree = new ctw.Predictor('000' + '111', 3).tree
+            expect(tree.count('000', '1')).to.equal(1)
         })
     })
 
@@ -206,20 +198,44 @@ describe('Predictor', () => {
         })
     })
 
-    describe('.next', () => {
+    describe('.read', () => {
         it('returns the next predictor after reading an observation', () => {
             const predictor = new ctw.Predictor('0', 1)
-            const new_pred = predictor.next('0')
-            expect(new_pred.tree.count('0')).to.equal(1)
+            const new_pred = predictor.read('1')
+            expect(new_pred.tree.count('0', '1')).to.equal(1)
         })
     })
 
     describe('.all_predictors', () => {
-        xit('yields all predictors as it scans the string', () => {
+        it('yields all predictors as it scans the string', () => {
             const actual = Array.from(ctw.Predictor.all_predictors('001', 1))
-            const first_exp = new ctw.Predictor('0', 1).read('0')
-            // const second_expected = new ctw.
+            const first = new ctw.Predictor('0', 1)
+            const second = first.read('0')
+            const third = second.read('1')
+            expect(actual.length).to.equal(3)
+            expect(actual[0].equals(first)).to.be.true
+            expect(actual[1].equals(second)).to.be.true
+            expect(actual[2].equals(third)).to.be.true
+        })
+    })
 
+    describe('.equals', () => {
+        it("returns true if they're the same", () => {
+            const first = new ctw.Predictor('001010101010', 3)
+            const second = new ctw.Predictor('001010101010', 3)
+            expect(first.equals(second)).to.be.true
+        })
+
+        it('returns false if the depth is different', () => {
+            const first = new ctw.Predictor('001', 3)
+            const second = new ctw.Predictor('001', 2)
+            expect(first.equals(second)).to.be.false
+        })
+
+        it('returns false if the history is different', () => {
+            const first = new ctw.Predictor('00100', 3)
+            const second = new ctw.Predictor('11100', 3)
+            expect(first.equals(second)).to.be.false
         })
     })
 })

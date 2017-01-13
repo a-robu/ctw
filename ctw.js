@@ -6,6 +6,39 @@ const sum = require('compute-sum')
 const memoizee = require('memoizee')
 const avg = require('compute-mean')
 
+function last_chars(str, n) {
+    return str.slice(str.length - n)
+}
+
+function first_chars(str, n) {
+    return str.slice(0, n)
+}
+
+function last_item(iterable) {
+    let last
+    for (let item of iterable) {
+        last = item
+    }
+    return last
+}
+
+/** Computes the Krichevsky–Trofimov estimator. */
+function kt(zeroes, ones) {
+    assert(zeroes >= 0 && ones >= 0, "we're expecting non-negative numbers")
+    if (zeroes == 0 && ones == 0) {
+        return 1
+    }
+    if (zeroes == 0) {
+        // We take P(m, n + 1) = P(m, n) * (n + 1/2) / (m + n + 1) then
+        // we set m = 0 and rewrite with ones = n + 1, n = ones - 1.
+        return kt(0, ones - 1) * (ones - 1 / 2) / ones
+    }
+    // We take P(m + 1, n) = P(m, n) * (m + 1/2) / (m + n + 1)
+    // then we rewrite with zeroes = m + 1, m = zeroes - 1 and ones = n.
+    return kt(zeroes - 1, ones) * (zeroes - 1 / 2) / (zeroes + ones)
+}
+kt = memoizee(kt)
+
 class Tree {
     constructor(max_depth, counts = Map()) {
         this._max_depth = max_depth
@@ -60,17 +93,24 @@ class Predictor {
         if (string.length == max_depth) {
             this.tree = new Tree(max_depth)
         }
-        else if (_precomputed_tree) {
+        else if (_precomputed_tree ) {
             this.tree = _precomputed_tree
         }
         else {
-            // this.tree = last_element(all_predictors)
-            throw new Error('not implemented')
+            let all_predictors = Predictor.all_predictors(string, max_depth)
+            this.tree = last_item(all_predictors).tree
         }
+        assert(this.tree instanceof Tree)
         Object.freeze(this)
     }
 
-    next(observation) {
+    equals(other) {
+        return ((this.max_depth == other.max_depth)
+            && (this.history == other.history)
+            && this.tree.equals(other.tree))
+    }
+
+    read(observation) {
         let new_history = this.history + observation
         let new_tree = this.tree.increment(this.context, observation)
         return new Predictor(new_history, this.max_depth, new_tree)
@@ -87,57 +127,27 @@ class Predictor {
 
     /** Yields Predictor's after each observation in the given string. */
     static* all_predictors(string, max_depth) {
-        
+        let init_ctx = first_chars(string, max_depth)
+        let predictor = new Predictor(init_ctx, max_depth)
+        yield predictor
+        for (let i = max_depth; i < string.length; i++) {
+            predictor = predictor.read(string[i])
+            yield predictor
+        }
     }
-}
 
-function last_chars(str, n) {
-    return str.slice(str.length - n)
-}
-
-/** Computes the Krichevsky–Trofimov estimator. */
-function kt(zeroes, ones) {
-    assert(zeroes >= 0 && ones >= 0, "we're expecting non-negative numbers")
-    if (zeroes == 0 && ones == 0) {
-        return 1
+    /**
+     * Returns a probability or a distribution for the next observation.
+     * 
+     * Does this by making two joint probabilities and obtaining a
+     * conditional probability from them. Basically, p(a|b) = p(a, b)/p(b).
+     * @param {Tree} tree
+     * @param {string} future_observation
+     */
+    predict(observation) {
+        let future_tree = this.tree.increment(this.context, observation)
+        return tree_p(future_tree) / tree_p(this.tree)
     }
-    if (zeroes == 0) {
-        // We take P(m, n + 1) = P(m, n) * (n + 1/2) / (m + n + 1) then
-        // we set m = 0 and rewrite with ones = n + 1, n = ones - 1.
-        return kt(0, ones - 1) * (ones - 1 / 2) / ones
-    }
-    // We take P(m + 1, n) = P(m, n) * (m + 1/2) / (m + n + 1)
-    // then we rewrite with zeroes = m + 1, m = zeroes - 1 and ones = n.
-    return kt(zeroes - 1, ones) * (zeroes - 1 / 2) / (zeroes + ones)
-}
-kt = memoizee(kt)
-
-function* yield_trees(init_ctx, string) {
-    let tree = new Tree(init_ctx.length)
-    for (let [context, observation] of scan(init_ctx, string)) {
-        tree = tree.increment(context, observation)
-        yield tree
-    }
-}
-
-/** Scans the string and yields all pairs of [context, observation] */
-function* scan(init_ctx, string) {
-    let max_depth = init_ctx.length
-    let to_compress = init_ctx + string
-    let to_observe = max_depth
-    while (to_observe < to_compress.length) {
-        yield [
-            to_compress.slice(to_observe - max_depth, to_observe),
-            to_compress[to_observe]
-        ]
-        ++to_observe
-    }
-}
-
-function final_tree(init_ctx, string) {
-    //TODO optimise memory by implementing a get_last(iterator) function
-    let trees = Array.from(yield_trees(init_ctx, string))
-    return trees[trees.length - 1]
 }
 
 /** 
@@ -172,26 +182,12 @@ function tree_p(tree) {
     return node_p(tree, '')
 }
 
-/**
- * Returns a probability distribution for the next observation.
- * 
- * Does this by making two joint probabilities and obtaining a
- * conditional probability from them. Basically, p(a|b) = p(a, b)/p(b).
- * @param {Tree} tree
- * @param {string} future_observation
- */
-function predict(tree, ctx, future_observation) {
-    let future_tree = tree.increment(ctx, future_observation)
-    return tree_p(future_tree) / tree_p(tree)
-}
-
 exports.last_chars = last_chars
+exports.first_chars = first_chars
+exports.last_item = last_item
 exports.kt = kt
 exports.Tree = Tree
-exports.scan = scan
-exports.final_tree = final_tree
+exports.Predictor = Predictor
 exports.leaf_p = leaf_p
 exports.node_p = node_p
 exports.tree_p = tree_p
-exports.predict = predict
-exports.Predictor = Predictor
