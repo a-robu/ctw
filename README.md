@@ -15,7 +15,7 @@ npm test
 ## How to use the predictor
 To estimate the probability of the next symbol in a string.
 ```
-> const ctw = require('./ctw')
+> const ctw = require('ctw')
 > new ctw.Predictor('01010101010101', 2).predict('0')
 0.9281081081081081
 > new ctw.Predictor('01010101010101', 2).predict('1')
