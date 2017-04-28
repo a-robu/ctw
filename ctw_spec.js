@@ -172,6 +172,10 @@ describe('Predictor', () => {
             let predictor = new ctw.Predictor('00', 1)
             expect(predictor.predict('0')).to.equal((3/8) / (1/2))
         })
+        xit('works on a non-binary alphabet', () => {
+            let predictor = new ctw.Predictor('abcabcabc', 1)
+            // expect(predictor.predict('a')).to.be.above(0.5)
+        })
     })
 
     describe('.construct', () => {
