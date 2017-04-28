@@ -27,7 +27,6 @@
     "immutable": "^3.8.1",
     "leasot": "^4.3.0",
     "memoizee": "^0.4.1",
-    "mocha": "^3.2.0",
-    "standard": "^8.6.0"
+    "mocha": "^3.2.0"
   }
 }
